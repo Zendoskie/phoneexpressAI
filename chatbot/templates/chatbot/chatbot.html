@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Express AI - Chat</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="chatbot-page">
+    <div class="chatbot-wrapper">
+        <div class="chatbot-header">
+            <div class="header-left">
+                <h2>Phone Express AI</h2>
+                <span class="header-subtitle">Phone Assistant</span>
+            </div>
+            <a href="{% url 'index' %}" class="home-link">Home</a>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>Hi! I'm your phone assistant. I can help you find the perfect phone based on your needs, budget, and preferences. What are you looking for?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <form id="chatForm" class="chat-form">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Ask about phones..." 
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" class="send-btn" id="sendButton">
+                        <span class="send-icon">→</span>
+                        <span class="loading-spinner" id="loadingSpinner" style="display: none;">...</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        let chatHistory = [];
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function addMessage(content, isBot = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isBot ? 'bot-message' : 'user-message'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    <p>${content}</p>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        async function sendMessage(message) {
+            try {
+                sendButton.disabled = true;
+                loadingSpinner.style.display = 'inline';
+                messageInput.disabled = true;
+                
+                addMessage(message, false);
+                chatHistory.push({ role: 'user', content: message });
+                
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: chatHistory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage(data.response, true);
+                    chatHistory.push({ role: 'assistant', content: data.response });
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', true);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.', true);
+            } finally {
+                sendButton.disabled = false;
+                loadingSpinner.style.display = 'none';
+                messageInput.disabled = false;
+                messageInput.focus();
+            }
+        }
+        
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (message) {
+                messageInput.value = '';
+                await sendMessage(message);
+            }
+        });
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        messageInput.focus();
+        
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

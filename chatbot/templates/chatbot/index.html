@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Express AI - Find Your Perfect Phone</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="intro-page">
+    <div class="intro-wrapper">
+        <div class="intro-content">
+            <div class="intro-header">
+                <h1 class="intro-title">Phone Express AI</h1>
+                <p class="intro-subtitle">Your AI assistant for finding the perfect phone</p>
+            </div>
+            
+            <div class="intro-description">
+                <p>Ask me anything about phones. I can help you find the right device based on your needs, budget, and preferences.</p>
+            </div>
+            
+            <div class="intro-features">
+                <div class="feature-item">
+                    <span class="feature-label">Phone Recommendations</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-label">Price Comparison</span>
+                </div>
+                <div class="feature-item">
+                    <span class="feature-label">Specifications</span>
+                </div>
+            </div>
+            
+            <a href="{% url 'chatbot' %}" class="start-button">
+                Start Chatting
+            </a>
+        </div>
+    </div>
+</body>
+</html>
